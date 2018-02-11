@@ -29,6 +29,11 @@ Promise.resolve()
 
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
+app.get('/films/:id/recommendations/*', (req, res) => {
+res.status(404).json({
+  message: 'Key Missing'
+  })
+})
 
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
@@ -36,7 +41,8 @@ function getFilmRecommendations(req, res) {
       SELECT genre_id FROM films WHERE id = ${req.params.id})
       AND release_date > (
       SELECT release_date FROM films WHERE id = ${req.params.id})
-      ORDER BY id LIMIT 3`  ,
+      ORDER BY id LIMIT 3
+      OFFSET 1`  ,
 
       { type: sequelize.QueryTypes.SELECT})
 
@@ -49,10 +55,14 @@ function getFilmRecommendations(req, res) {
       // console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
       console.log(`this is how many reviews movie ${req.params.id} has` , JSON.parse(body)[0].reviews.length);
       console.log('this is console.log films: ', films)
-      res.send({recommendations: films, meta: films.length})
+      res.send({recommendations: films, meta: {"limit": 10, "offset": 0}})
 
     })
 
+  }).catch(error => {
+    res.status(422).json({
+      message: 'Key Missing'
+    })
   })
 
 }
